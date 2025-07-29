@@ -4,7 +4,7 @@ import '../../node_modules/simplelightbox/dist/simple-lightbox.min.css';
 export const gallery = document.querySelector('.gallery');
 export const btnLoader = document.querySelector('.load-more');
 
-export function createGallery(images) {
+export async function createGallery(images) {
   const listImages = images
     .map(
       ({
@@ -57,10 +57,12 @@ export function createGallery(images) {
 
 export function showLoader(loader) {
   loader.classList.add('loader');
+  loader.textContent = 'Loading';
 }
 
 export function hideLoader(loader) {
   loader.classList.remove('loader');
+  loader.textContent = '';
 }
 
 export function clearGallery() {

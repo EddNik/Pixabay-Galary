@@ -8,7 +8,6 @@ import {
   showLoadMoreButton,
   hideLoadMoreButton,
   btnLoader,
-  gallery,
 } from './js/render-functions';
 
 import iziToast from 'izitoast';
@@ -21,16 +20,13 @@ let query = '';
 let total_pages = 0;
 const per_page = 15;
 let prevQuery = '';
-const spanElementsMarkup = document.createElement('span');
-spanElementsMarkup.textContent = 'Loading';
+
+const loader = document.querySelector('.js-loader');
+const loaderMore = document.querySelector('.js-loader-more');
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
   clearGallery();
-
-  //time loader visible after form
-  gallery.insertAdjacentElement('beforebegin', spanElementsMarkup);
-  const loader = document.querySelector('span');
 
   try {
     query = form.elements['search-text'].value.trim();
@@ -67,23 +63,19 @@ form.addEventListener('submit', async event => {
 
     createGallery(hits);
     hideLoader(loader);
-    spanElementsMarkup.remove();
     showLoadMoreButton();
   } catch (error) {
     iziToastOption.message = error.message;
     iziToast.show(iziToastOption);
     setTimeout(() => {
       hideLoader(loader);
-      spanElementsMarkup.remove();
     }, 500);
   }
 });
 
 btnLoader.addEventListener('click', async event => {
   event.preventDefault();
-  gallery.insertAdjacentElement('afterend', spanElementsMarkup);
-  const loader = document.querySelector('span');
-  showLoader(loader);
+  showLoader(loaderMore);
   page += 1;
 
   try {
@@ -97,14 +89,12 @@ btnLoader.addEventListener('click', async event => {
     }
 
     createGallery(hits);
-    hideLoader(loader);
-    spanElementsMarkup.remove();
+    hideLoader(loaderMore);
   } catch (error) {
     iziToastOption.message = error.message;
     iziToast.show(iziToastOption);
     setTimeout(() => {
-      hideLoader(loader);
-      spanElementsMarkup.remove();
+      hideLoader(loaderMore);
     }, 500);
   }
 });
