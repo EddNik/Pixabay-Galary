@@ -1,100 +1,90 @@
 import getImagesByQuery from './js/pixabay-api';
 import { iziToastOption } from './js/pixabay-api';
-import {
-  createGallery,
-  hideLoader,
-  showLoader,
-  clearGallery,
-  showLoadMoreButton,
-  hideLoadMoreButton,
-  btnLoader,
-} from './js/render-functions';
-
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 
-const form = document.querySelector('.form');
+import * as render from './js/render-functions';
 
-let page = 1;
-let query = '';
-let total_pages = 0;
-const per_page = 15;
-let prevQuery = '';
+const form = document.querySelector('.form');
+const page = {};
 
 const loader = document.querySelector('.js-loader');
 const loaderMore = document.querySelector('.js-loader-more');
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
-  clearGallery();
+  render.clearGallery();
+  page.query = form.elements['search-text'].value.trim();
+  render.showLoader(loader);
 
   try {
-    query = form.elements['search-text'].value.trim();
-    showLoader(loader);
-
-    // reset number of page when type a new word
-    if (query !== prevQuery) {
-      page = 1;
-    }
-    prevQuery = query;
-    let { totalHits, hits } = await getImagesByQuery(query, page);
-    total_pages = Math.ceil(totalHits / per_page);
-
-    if (Array.isArray(hits) && hits.length === 0) {
-      hideLoadMoreButton();
-      page = 1;
-      throw new Error(
-        'Sorry, there are no images matching your search query. Please try again!'
-      );
-    }
-
-    //Перевірка кінця колекції
-    if (page > total_pages) {
-      hideLoadMoreButton();
-      page = 1;
+    if (!Boolean(page.query)) {
       form.reset();
-      throw new Error('We are sorry, there are no more posts to load');
-    }
-
-    if (!Boolean(query)) {
-      hideLoadMoreButton();
       throw new Error('Sorry, this name images is empty. Please try again!');
     }
 
-    createGallery(hits);
-    hideLoader(loader);
-    showLoadMoreButton();
-  } catch (error) {
-    iziToastOption.message = error.message;
-    iziToast.show(iziToastOption);
-    setTimeout(() => {
-      hideLoader(loader);
-    }, 500);
-  }
-});
+    // init page object : reset page number when entering a new search category OR when changing state due to error
+    if (page.query !== page.previousQuery || !page.state) {
+      page.number = 1;
+      page.previousQuery = page.query;
+      page.state = true;
+    }
 
-btnLoader.addEventListener('click', async event => {
-  event.preventDefault();
-  showLoader(loaderMore);
-  page += 1;
+    const { totalHits, hits } = await getImagesByQuery(page.query, page.number);
+    total_pages = Math.ceil(totalHits / hits.length);
 
-  try {
-    const { hits } = await getImagesByQuery(query, page);
+    // just for testing the end of the collection: totalHits = 35
+    // page.total_pages = Math.ceil(35 / hits.length);
 
-    if (page > total_pages) {
-      hideLoadMoreButton();
-      page = 0;
-      form.reset();
+    //Перевірка кінця колекції
+    if (page.number > page.total_pages) {
       throw new Error('We are sorry, there are no more posts to load');
     }
 
-    createGallery(hits);
-    hideLoader(loaderMore);
+    if (totalHits === 0) {
+      form.reset();
+      throw new Error(
+        'Sorry, there are no images matching your search query. Please try again!'
+      );
+    } else {
+      render.createGallery(hits);
+      render.hideLoader(loader);
+      render.showLoadMoreButton();
+    }
   } catch (error) {
-    iziToastOption.message = error.message;
-    iziToast.show(iziToastOption);
-    setTimeout(() => {
-      hideLoader(loaderMore);
-    }, 500);
+    iziToastErrorMessage(error, loader);
   }
 });
+
+render.btnLoader.addEventListener('click', async event => {
+  event.preventDefault();
+  render.showLoader(loaderMore);
+  page.number += 1;
+
+  try {
+    const { hits } = await getImagesByQuery(page.query, page.number);
+    render.createGallery(hits);
+    render.hideLoader(loaderMore);
+
+    //Перевірка кінця колекції
+    if (page.number === page.total_pages) {
+      throw new Error('We are sorry, there are no more posts to load');
+    }
+  } catch (error) {
+    iziToastErrorMessage(error, loaderMore);
+  }
+});
+
+function iziToastErrorMessage(error, loader) {
+  render.hideLoadMoreButton();
+  iziToastOption.message = error.message;
+  iziToast.show(iziToastOption);
+
+  // setTimeout is used only to improve visibility
+  setTimeout(() => {
+    render.hideLoader(loader);
+  }, 500);
+  page.state = false;
+}
+
+form.reset();
