@@ -31,10 +31,7 @@ form.addEventListener('submit', async event => {
     }
 
     const { totalHits, hits } = await getImagesByQuery(page.query, page.number);
-    total_pages = Math.ceil(totalHits / hits.length);
-
-    // just for testing the end of the collection: totalHits = 35
-    // page.total_pages = Math.ceil(35 / hits.length);
+    page.total_pages = Math.ceil(totalHits / hits.length);
 
     //Перевірка кінця колекції
     if (page.number > page.total_pages) {
@@ -66,6 +63,8 @@ render.btnLoader.addEventListener('click', async event => {
     render.createGallery(hits);
     render.hideLoader(loaderMore);
 
+    scroll();
+
     //Перевірка кінця колекції
     if (page.number === page.total_pages) {
       throw new Error('We are sorry, there are no more posts to load');
@@ -85,6 +84,12 @@ function iziToastErrorMessage(error, loader) {
     render.hideLoader(loader);
   }, 500);
   page.state = false;
+}
+
+function scroll() {
+  const galleryItem = render.gallery.lastChild;
+  const rect = galleryItem.getBoundingClientRect();
+  window.scrollBy(0, rect.height * 3);
 }
 
 form.reset();
