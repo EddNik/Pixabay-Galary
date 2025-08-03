@@ -4,6 +4,11 @@ import '../../node_modules/simplelightbox/dist/simple-lightbox.min.css';
 export const gallery = document.querySelector('.gallery');
 export const btnLoader = document.querySelector('.load-more');
 
+const simpleLightBox = new SimpleLightbox('.gallery a', {
+  captionDelay: 250,
+  overlayOpacity: 0.95,
+});
+
 export async function createGallery(images) {
   const listImages = images
     .map(
@@ -49,10 +54,7 @@ export async function createGallery(images) {
 
   gallery.insertAdjacentHTML('beforeend', listImages);
 
-  new SimpleLightbox('.gallery a', {
-    captionDelay: 250,
-    overlayOpacity: 0.95,
-  }).refresh();
+  simpleLightBox.refresh();
 }
 
 export function showLoader(loader) {
