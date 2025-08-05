@@ -11,9 +11,10 @@ const page = {};
 const loader = document.querySelector('.js-loader');
 const loaderMore = document.querySelector('.js-loader-more');
 
+let requestStatus = true;
+
 form.addEventListener('submit', async event => {
   event.preventDefault();
-  render.clearGallery();
   page.query = form.elements['search-text'].value.trim();
   render.showLoader(loader);
 
@@ -23,15 +24,15 @@ form.addEventListener('submit', async event => {
       throw new Error('Sorry, this name images is empty. Please try again!');
     }
 
-    // init page object : reset page number when entering a new search category OR when changing state due to error
-    if (page.query !== page.previousQuery || !page.state) {
+    // init page object : reset page number when entering a new search category OR when changing status request due to error
+    if (page.query !== page.previousQuery || !requestStatus) {
       page.number = 1;
       page.previousQuery = page.query;
-      page.state = true;
+      requestStatus = true;
     }
 
     const { totalHits, hits } = await getImagesByQuery(page.query, page.number);
-    page.total_pages = Math.ceil(totalHits / hits.length);
+    page.total_pages = Math.ceil(totalHits / 15);
 
     //Перевірка кінця колекції
     if (page.number > page.total_pages) {
@@ -44,13 +45,14 @@ form.addEventListener('submit', async event => {
         'Sorry, there are no images matching your search query. Please try again!'
       );
     } else {
+      render.clearGallery();
       render.createGallery(hits);
-      render.hideLoader(loader);
       render.showLoadMoreButton();
     }
   } catch (error) {
     iziToastErrorMessage(error, loader);
   }
+  render.hideLoader(loader);
 });
 
 render.btnLoader.addEventListener('click', async event => {
@@ -61,35 +63,32 @@ render.btnLoader.addEventListener('click', async event => {
   try {
     const { hits } = await getImagesByQuery(page.query, page.number);
     render.createGallery(hits);
-    render.hideLoader(loaderMore);
-
     scroll();
 
     //Перевірка кінця колекції
-    if (page.number === page.total_pages) {
+    if (page.number >= page.total_pages || hits.length < 15) {
       throw new Error('We are sorry, there are no more posts to load');
     }
   } catch (error) {
     iziToastErrorMessage(error, loaderMore);
   }
+  //лоадер приховується в самій помилці. Не зрозуміло зауваження : Це може спричинити залишення лоадера видимим, якщо після його приховання виникла помилка.
+  //але переніс ховання лоадера після помилки
+  render.hideLoader(loaderMore);
 });
 
 function iziToastErrorMessage(error, loader) {
   render.hideLoadMoreButton();
   iziToastOption.message = error.message;
   iziToast.show(iziToastOption);
-
-  // setTimeout is used only to improve visibility
-  setTimeout(() => {
-    render.hideLoader(loader);
-  }, 500);
-  page.state = false;
+  render.hideLoader(loader);
+  requestStatus = false;
 }
 
 function scroll() {
   const galleryItem = render.gallery.lastChild;
   const rect = galleryItem.getBoundingClientRect();
-  window.scrollBy(0, rect.height * 3);
+  window.scrollBy(0, rect.height * 2);
 }
 
 form.reset();
