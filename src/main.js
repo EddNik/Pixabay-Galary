@@ -16,7 +16,6 @@ let requestStatus = true;
 form.addEventListener('submit', async event => {
   event.preventDefault();
   page.query = form.elements['search-text'].value.trim();
-  render.showLoader(loader);
 
   try {
     if (!Boolean(page.query)) {
@@ -30,7 +29,7 @@ form.addEventListener('submit', async event => {
       page.previousQuery = page.query;
       requestStatus = true;
     }
-
+    render.showLoader(loader);
     const { totalHits, hits } = await getImagesByQuery(page.query, page.number);
     page.total_pages = Math.ceil(totalHits / 15);
 
@@ -47,20 +46,21 @@ form.addEventListener('submit', async event => {
     } else {
       render.clearGallery();
       render.createGallery(hits);
-      render.showLoadMoreButton();
     }
   } catch (error) {
-    iziToastErrorMessage(error, loader);
+    iziToastErrorMessage(error);
   }
   render.hideLoader(loader);
+  render.showLoadMoreButton();
 });
 
 render.btnLoader.addEventListener('click', async event => {
   event.preventDefault();
-  render.showLoader(loaderMore);
+
   page.number += 1;
 
   try {
+    render.showLoader(loaderMore);
     const { hits } = await getImagesByQuery(page.query, page.number);
     render.createGallery(hits);
     scroll();
@@ -70,18 +70,18 @@ render.btnLoader.addEventListener('click', async event => {
       throw new Error('We are sorry, there are no more posts to load');
     }
   } catch (error) {
-    iziToastErrorMessage(error, loaderMore);
+    iziToastErrorMessage(error);
   }
   //лоадер приховується в самій помилці. Не зрозуміло зауваження : Це може спричинити залишення лоадера видимим, якщо після його приховання виникла помилка.
   //але переніс ховання лоадера після помилки
   render.hideLoader(loaderMore);
 });
 
-function iziToastErrorMessage(error, loader) {
+function iziToastErrorMessage(error) {
   render.hideLoadMoreButton();
   iziToastOption.message = error.message;
   iziToast.show(iziToastOption);
-  render.hideLoader(loader);
+  // render.hideLoader(loader);
   requestStatus = false;
 }
 
