@@ -29,6 +29,7 @@ form.addEventListener('submit', async event => {
       page.previousQuery = page.query;
       requestStatus = true;
     }
+    render.clearGallery();
     render.showLoader(loader);
     const { totalHits, hits } = await getImagesByQuery(page.query, page.number);
     page.total_pages = Math.ceil(totalHits / 15);
@@ -44,14 +45,16 @@ form.addEventListener('submit', async event => {
         'Sorry, there are no images matching your search query. Please try again!'
       );
     } else {
-      render.clearGallery();
       render.createGallery(hits);
     }
   } catch (error) {
     iziToastErrorMessage(error);
   }
   render.hideLoader(loader);
-  render.showLoadMoreButton();
+
+  if (page.number < page.total_pages) {
+    render.showLoadMoreButton();
+  }
 });
 
 render.btnLoader.addEventListener('click', async event => {
@@ -62,7 +65,7 @@ render.btnLoader.addEventListener('click', async event => {
     render.showLoader(loaderMore);
     const { hits } = await getImagesByQuery(page.query, page.number);
     render.createGallery(hits);
-    scroll();
+    render.scroll();
 
     //Перевірка кінця колекції
     if (page.number >= page.total_pages || hits.length < 15) {
@@ -79,12 +82,6 @@ function iziToastErrorMessage(error) {
   iziToastOption.message = error.message;
   iziToast.show(iziToastOption);
   requestStatus = false;
-}
-
-function scroll() {
-  const galleryItem = render.gallery.lastChild;
-  const rect = galleryItem.getBoundingClientRect();
-  window.scrollBy(0, rect.height * 2);
 }
 
 form.reset();

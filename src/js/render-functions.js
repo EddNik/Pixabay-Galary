@@ -78,3 +78,9 @@ export function showLoadMoreButton() {
 export function hideLoadMoreButton() {
   btnLoader.classList.add('btn-loader');
 }
+
+export function scroll() {
+  const galleryItem = gallery.lastChild;
+  const rect = galleryItem.getBoundingClientRect();
+  window.scrollBy(0, rect.height * 2);
+}
