@@ -56,7 +56,6 @@ form.addEventListener('submit', async event => {
 
 render.btnLoader.addEventListener('click', async event => {
   event.preventDefault();
-
   page.number += 1;
 
   try {
@@ -72,8 +71,6 @@ render.btnLoader.addEventListener('click', async event => {
   } catch (error) {
     iziToastErrorMessage(error);
   }
-  //лоадер приховується в самій помилці. Не зрозуміло зауваження : Це може спричинити залишення лоадера видимим, якщо після його приховання виникла помилка.
-  //але переніс ховання лоадера після помилки
   render.hideLoader(loaderMore);
 });
 
@@ -81,7 +78,6 @@ function iziToastErrorMessage(error) {
   render.hideLoadMoreButton();
   iziToastOption.message = error.message;
   iziToast.show(iziToastOption);
-  // render.hideLoader(loader);
   requestStatus = false;
 }
 
