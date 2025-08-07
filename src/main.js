@@ -7,11 +7,10 @@ import * as render from './js/render-functions';
 
 const form = document.querySelector('.form');
 const page = {};
+let requestStatus = true;
 
 const loader = document.querySelector('.js-loader');
 const loaderMore = document.querySelector('.js-loader-more');
-
-let requestStatus = true;
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
@@ -46,15 +45,14 @@ form.addEventListener('submit', async event => {
       );
     } else {
       render.createGallery(hits);
+      if (page.number < page.total_pages) {
+        render.showLoadMoreButton();
+      }
     }
   } catch (error) {
     iziToastErrorMessage(error);
   }
   render.hideLoader(loader);
-
-  if (page.number < page.total_pages) {
-    render.showLoadMoreButton();
-  }
 });
 
 render.btnLoader.addEventListener('click', async event => {
@@ -68,7 +66,8 @@ render.btnLoader.addEventListener('click', async event => {
     render.scroll();
 
     //Перевірка кінця колекції
-    if (page.number >= page.total_pages || hits.length < 15) {
+    if (page.number >= page.total_pages || hits.length <= 0) {
+      render.hideLoadMoreButton();
       throw new Error('We are sorry, there are no more posts to load');
     }
   } catch (error) {
@@ -78,7 +77,6 @@ render.btnLoader.addEventListener('click', async event => {
 });
 
 function iziToastErrorMessage(error) {
-  render.hideLoadMoreButton();
   iziToastOption.message = error.message;
   iziToast.show(iziToastOption);
   requestStatus = false;

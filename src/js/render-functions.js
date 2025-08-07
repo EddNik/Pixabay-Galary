@@ -82,5 +82,9 @@ export function hideLoadMoreButton() {
 export function scroll() {
   const galleryItem = gallery.lastChild;
   const rect = galleryItem.getBoundingClientRect();
-  window.scrollBy(0, rect.height * 2);
+  window.scrollBy({
+    top: rect.height * 2,
+    left: 0,
+    behavior: 'smooth',
+  });
 }
