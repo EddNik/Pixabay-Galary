@@ -28,27 +28,25 @@ form.addEventListener('submit', async event => {
       page.previousQuery = page.query;
       requestStatus = true;
     }
+
     render.clearGallery();
     render.showLoader(loader);
     const { totalHits, hits } = await getImagesByQuery(page.query, page.number);
     page.total_pages = Math.ceil(totalHits / 15);
 
-    //Перевірка кінця колекції
-    if (page.number > page.total_pages) {
+    if (page.number < page.total_pages) {
+      render.showLoadMoreButton();
+    } else {
       render.hideLoadMoreButton();
-      throw new Error('We are sorry, there are no more posts to load');
-    } else if (totalHits === 0) {
+    }
+
+    if (totalHits === 0) {
       form.reset();
-      render.hideLoadMoreButton();
       throw new Error(
         'Sorry, there are no images matching your search query. Please try again!'
       );
-    } else {
-      render.createGallery(hits);
-      if (page.number < page.total_pages) {
-        render.showLoadMoreButton();
-      }
     }
+    render.createGallery(hits);
   } catch (error) {
     iziToastErrorMessage(error);
   }
@@ -68,7 +66,9 @@ render.btnLoader.addEventListener('click', async event => {
     //Перевірка кінця колекції
     if (page.number >= page.total_pages || hits.length <= 0) {
       render.hideLoadMoreButton();
-      throw new Error('We are sorry, there are no more posts to load');
+      throw new Error(
+        'We are sorry, but you have reached the end of search results'
+      );
     }
   } catch (error) {
     iziToastErrorMessage(error);
