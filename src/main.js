@@ -35,11 +35,11 @@ form.addEventListener('submit', async event => {
 
     //Перевірка кінця колекції
     if (page.number > page.total_pages) {
+      render.hideLoadMoreButton();
       throw new Error('We are sorry, there are no more posts to load');
-    }
-
-    if (totalHits === 0) {
+    } else if (totalHits === 0) {
       form.reset();
+      render.hideLoadMoreButton();
       throw new Error(
         'Sorry, there are no images matching your search query. Please try again!'
       );
